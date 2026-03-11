@@ -585,53 +585,66 @@ li {
 </blockquote>
 <h3>가중치 종합 순위표</h3>
 <div id="price-controls" style="background:#f0f4f8;border:2px solid #4a90d9;border-radius:10px;padding:16px 20px;margin-bottom:16px;">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-<strong style="font-size:1.1em;">🎛️ 가격매력도 배수 조절</strong>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+<strong style="font-size:1.1em;">🎛️ 가격매력도 파라미터 조절</strong>
 <button onclick="resetParams()" style="padding:4px 12px;border:1px solid #999;border-radius:4px;background:#fff;cursor:pointer;">기본값 복원</button>
 </div>
-<div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:8px 16px;align-items:center;">
-<div></div>
-<div style="text-align:center;font-weight:bold;color:green;">저렴할 때 (+)</div>
-<div style="text-align:center;font-weight:bold;color:red;">비쌀 때 (−)</div>
-<div><strong>FSC</strong> <span style="color:#888;font-size:0.85em;">대한항공·JAL·아시아나</span></div>
-<div style="text-align:center;"><input type="range" id="fsc-pos" min="0" max="5" step="0.5" value="3" oninput="this.nextElementSibling.value=this.value;update();" style="width:120px;"><output>3</output></div>
-<div style="text-align:center;"><input type="range" id="fsc-neg" min="0" max="5" step="0.5" value="2" oninput="this.nextElementSibling.value=this.value;update();" style="width:120px;"><output>2</output></div>
-<div><strong>LCC</strong> <span style="color:#888;font-size:0.85em;">진에어·제주·이스타·티웨이</span></div>
-<div style="text-align:center;"><input type="range" id="lcc-pos" min="0" max="5" step="0.5" value="2" oninput="this.nextElementSibling.value=this.value;update();" style="width:120px;"><output>2</output></div>
-<div style="text-align:center;"><input type="range" id="lcc-neg" min="0" max="5" step="0.5" value="3" oninput="this.nextElementSibling.value=this.value;update();" style="width:120px;"><output>3</output></div>
+<div style="display:grid;grid-template-columns:140px 1fr 50px;gap:10px 12px;align-items:center;">
+<div><strong>가격매력도 비중</strong></div>
+<div><input type="range" id="sl-w" min="0" max="5" step="0.5" value="2" oninput="this.parentNode.nextElementSibling.textContent=this.value;update();" style="width:100%;"></div>
+<div style="text-align:center;font-weight:bold;">2</div>
+<div><strong>FSC 프리미엄</strong></div>
+<div><input type="range" id="sl-f" min="1" max="2" step="0.1" value="1.5" oninput="this.parentNode.nextElementSibling.textContent='×'+this.value;update();" style="width:100%;"></div>
+<div style="text-align:center;font-weight:bold;">×1.5</div>
+<div><strong>중립가격</strong></div>
+<div><input type="range" id="sl-b" min="350000" max="650000" step="10000" value="500000" oninput="this.parentNode.nextElementSibling.textContent='₩'+(this.value/10000)+'만';update();" style="width:100%;"></div>
+<div style="text-align:center;font-weight:bold;">₩50만</div>
 </div>
-<div style="margin-top:10px;font-size:0.85em;color:#666;">ℹ️ 가격매력도 = 원점수 × 배수. 슬라이더를 움직이면 즉시 재계산됩니다. <span id="param-status"></span></div>
+<div style="margin-top:10px;font-size:0.85em;color:#666;">
+ℹ️ 실질 배수 → <span id="derived-rates">FSC저렴 ×3.0 · FSC비싼 ×2.0 · LCC저렴 ×2.0 · LCC비싼 ×3.0</span>
+<span id="param-status"></span>
+</div>
 </div>
 <div id="ranking-table"></div>
 <script>
 var D=[
-{n:"후쿠오카",t:"",s:31.5,r:2,c:"진에어(LCC)",f:"LCC",p:386000,r6:2},
-{n:"아오모리",t:" 🆕",s:24.5,r:3,c:"대한항공/JAL(FSC)",f:"FSC",p:355400,r6:11},
-{n:"기타큐슈",t:"",s:28.0,r:1.5,c:"진에어(LCC)",f:"LCC",p:420600,r6:7},
-{n:"가고시마",t:"",s:32.0,r:-0.5,c:"대한항공/JAL(FSC)",f:"FSC",p:519700,r6:1},
-{n:"마쓰야마",t:"",s:26.0,r:0,c:"제주항공(LCC)",f:"LCC",p:491500,r6:9},
-{n:"나하",t:"",s:30.5,r:-2,c:"이스타(LCC)",f:"LCC",p:588800,r6:3},
-{n:"삿포로",t:"",s:28.5,r:-1.5,c:"이스타(LCC)",f:"LCC",p:583080,r6:5},
-{n:"센다이",t:"",s:28.5,r:-2.5,c:"아시아나(FSC)",f:"FSC",p:633100,r6:6},
-{n:"구마모토",t:"",s:29.0,r:-2,c:"티웨이(LCC)",f:"LCC",p:591900,r6:4},
-{n:"가나자와",t:"",s:27.5,r:-3,c:"대한항공(FSC)",f:"FSC",p:651000,r6:8},
-{n:"하코다테",t:"",s:25.0,r:-1.5,c:"제주항공(LCC)",f:"LCC",p:582200,r6:10}
+{n:"후쿠오카",t:"",s:31.5,r0:2,c:"진에어(LCC)",f:"LCC",p:386000,r6:2},
+{n:"아오모리",t:" 🆕",s:24.5,r0:3,c:"대한항공/JAL(FSC)",f:"FSC",p:355400,r6:11},
+{n:"기타큐슈",t:"",s:28.0,r0:1.5,c:"진에어(LCC)",f:"LCC",p:420600,r6:7},
+{n:"가고시마",t:"",s:32.0,r0:-0.5,c:"대한항공/JAL(FSC)",f:"FSC",p:519700,r6:1},
+{n:"마쓰야마",t:"",s:26.0,r0:0,c:"제주항공(LCC)",f:"LCC",p:491500,r6:9},
+{n:"나하",t:"",s:30.5,r0:-2,c:"이스타(LCC)",f:"LCC",p:588800,r6:3},
+{n:"삿포로",t:"",s:28.5,r0:-1.5,c:"이스타(LCC)",f:"LCC",p:583080,r6:5},
+{n:"센다이",t:"",s:28.5,r0:-2.5,c:"아시아나(FSC)",f:"FSC",p:633100,r6:6},
+{n:"구마모토",t:"",s:29.0,r0:-2,c:"티웨이(LCC)",f:"LCC",p:591900,r6:4},
+{n:"가나자와",t:"",s:27.5,r0:-3,c:"대한항공(FSC)",f:"FSC",p:651000,r6:8},
+{n:"하코다테",t:"",s:25.0,r0:-1.5,c:"제주항공(LCC)",f:"LCC",p:582200,r6:10}
 ];
 var EX=[
 {n:"나가사키 ⚠️",m:"출국 직항은 있으나 4/5 귀국 직항 없음 → 순위 제외",d:"콘텐츠 우수하나 귀국편 제약"},
 {n:"시즈오카 📌",m:"나이트라이프 가이드 미포함",d:"항공편 참고만"},
 {n:"히로시마 ❌",m:"해당 기간 검색결과 없음",d:"운항편 없음"}
 ];
-function gp(){return{fp:+document.getElementById("fsc-pos").value,fn:+document.getElementById("fsc-neg").value,lp:+document.getElementById("lcc-pos").value,ln:+document.getElementById("lcc-neg").value};}
+var DEF_B=500000;
+function getRaw(d,b){
+if(b===DEF_B) return d.r0;
+return Math.round((d.r0+(b-DEF_B)/50000)*2)/2;
+}
 function update(){
-var p=gp();
+var W=+document.getElementById("sl-w").value;
+var F=+document.getElementById("sl-f").value;
+var B=+document.getElementById("sl-b").value;
 var st=document.getElementById("param-status");
-if(p.fp===3&&p.fn===2&&p.lp===2&&p.ln===3){st.textContent="";}
-else{st.innerHTML="<strong style='color:#c00;'>⚡ 커스텀 배수 적용 중</strong>";}
+if(W===2&&F===1.5&&B===DEF_B){st.textContent="";}
+else{st.innerHTML=" <strong style='color:#c00;'>⚡ 커스텀 적용 중</strong>";}
+var dr=document.getElementById("derived-rates");
+dr.textContent="FSC저렴 ×"+(W*F).toFixed(1)+" · FSC비싼 ×"+W.toFixed(1)+" · LCC저렴 ×"+W.toFixed(1)+" · LCC비싼 ×"+(W*F).toFixed(1);
 var rows=D.map(function(d){
-var m=d.r>=0?(d.f==="FSC"?p.fp:p.lp):(d.f==="FSC"?p.fn:p.ln);
-var pm=d.r*m,total=d.s+pm;
-return{n:d.n,t:d.t,s:d.s,r:d.r,c:d.c,f:d.f,p:d.p,r6:d.r6,pm:pm,total:total};
+var r=getRaw(d,B);
+var fav=(r>=0&&d.f==="FSC")||(r<0&&d.f==="LCC");
+var m=W*(fav?F:1);
+var pm=r*m,total=d.s+pm;
+return{n:d.n,t:d.t,s:d.s,r:r,c:d.c,f:d.f,p:d.p,r6:d.r6,pm:pm,total:total};
 });
 rows.sort(function(a,b){return b.total-a.total||a.p-b.p;});
 rows.forEach(function(r,i){r.rank=i+1;});
@@ -675,8 +688,12 @@ h+="</tbody></table>";
 document.getElementById("ranking-table").innerHTML=h;
 }
 function resetParams(){
-var ids=["fsc-pos","fsc-neg","lcc-pos","lcc-neg"],vals=[3,2,2,3];
-ids.forEach(function(id,i){var el=document.getElementById(id);el.value=vals[i];el.nextElementSibling.value=vals[i];});
+document.getElementById("sl-w").value=2;
+document.getElementById("sl-w").parentNode.nextElementSibling.textContent="2";
+document.getElementById("sl-f").value=1.5;
+document.getElementById("sl-f").parentNode.nextElementSibling.textContent="×1.5";
+document.getElementById("sl-b").value=DEF_B;
+document.getElementById("sl-b").parentNode.nextElementSibling.textContent="₩50만";
 update();
 }
 update();
